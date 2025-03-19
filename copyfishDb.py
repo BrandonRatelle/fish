@@ -66,18 +66,39 @@ class FishDb():
 
     # Updating
  
-    def update(self, old_name, new_name):
+    def update(self, old_record):
         try:
-            query = "UPDATE FishStat SET Name = ? WHERE Name = ?;"
-            query = "UPDATE FishStat SET Color = ? WHERE Color = ?;"
-            query = "UPDATE FishStat SET Habitat = ? WHERE Habitat = ?;"
-            query = "UPDATE FishStat SET Pounds = ? WHERE Pounds = ?;"
-            query = "UPDATE FishStat SET MaxAge = ? WHERE MaxAge = ?;"
-            self.cursor.execute(query, (new_name, old_name))
+            # Fetch existing values from the database for comparison
+            query = "SELECT Name, Color, Habitat, Pounds, MaxAge FROM FishStat WHERE Name = ?"
+            self.cursor.execute(query, (old_record[0],))  # Use a tuple (old_record[0],)
+            existing_values = self.cursor.fetchone()
+
+            if not existing_values:
+                raise ValueError("No record found with the given Name.")
+
+            # Correct column mappings
+            names = ["Name", "Color", "Habitat", "Pounds", "MaxAge"]
+
+            # Loop through columns and update only if the value has changed
+            for i in range(1, len(old_record)):  # Start at 1 to skip "Name" (or ID)
+                if str(old_record[i]) != str(existing_values[i - 1]):  # Align indexes
+                    # Dynamically construct the query with column names
+                    query = f"UPDATE FishStat SET {names[i]} = ? WHERE Name = ?"
+                    self.cursor.execute(query, (old_record[i], old_record[0]))
+
+            # Commit all updates after the loop
             self.Fishconnect.commit()
-            self.select()
+            self.select()  # Refresh or reload UI/data
+
         except sqlite3.Error as error:
+            self.Fishconnect.rollback()  # Roll back changes on error
+            print(f"Database Error: {error}")
             return "Update Error", error
+
+        except ValueError as ve:
+            print(ve)
+            return ve
+
 
     # Deleting
     def delete(self):
