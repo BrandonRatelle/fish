@@ -15,6 +15,7 @@ class FishGui():
         self.fishLabel = tk.Label(self.win, image=self.fishImage)
         self.fishLabel.place(relwidth=1, relheight=1)
 
+        #Storage for data from db queries
         self.currentIndex = 0
         self.records = []
 
@@ -150,6 +151,8 @@ class FishGui():
         if self.records:
             self.showRecord(self.currentIndex)
 
+        print()
+
     def showRecord(self, index):
         if 0 <= index < len(self.records):
             record = self.records[index]
@@ -219,8 +222,18 @@ class FishGui():
                 self.fetchdata()
   
             else:  # Updating an existing record
-                old_name = self.records[self.currentIndex][1]
-                self.db.update(old_name, self.name)
+                existing_records = []
+
+                
+                
+                existing_records.append(str(self.name))
+                existing_records.append(str(self.color))
+                existing_records.append(str(self.habitat))
+                existing_records.append(str(self.pounds))
+                existing_records.append(str(self.maxage))
+
+                
+                self.db.update(existing_records)
                 messagebox.showinfo("Success", "Fish updated successfully!")
 
                 self.fetchdata()# Refresh the data after adding/updating
@@ -237,4 +250,9 @@ class FishGui():
 
     def showHelp(self):
         messagebox.showinfo("Help", "This is a fish tracking application for an aquarium. Use the menu or buttons to navigate, add, delete, or update fish records.")
+
+
+
+
+
 
